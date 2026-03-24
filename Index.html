@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ExerciseBuddy</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f0f7f4; --surface: #ffffff; --surface2: #e8f4ef;
+    --green: #1d8a5e; --green-light: #d0ede2; --green-dark: #0f5c3e;
+    --blue: #1a6fa8; --blue-light: #cce4f4;
+    --text: #1a2e25; --text-muted: #5a7a6b; --border: #c8e0d4;
+    --accent: #ff6b3d; --radius: 14px; --shadow: 0 2px 16px rgba(29,138,94,0.10);
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .app { width: 100%; max-width: 420px; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .logo { text-align: center; margin-bottom: 2rem; }
+  .logo-icon { width: 60px; height: 60px; background: var(--green); border-radius: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 0.75rem; box-shadow: 0 4px 16px rgba(29,138,94,0.25); }
+  .logo h1 { font-size: 1.6rem; font-weight: 600; color: var(--green-dark); letter-spacing: -0.03em; }
+  .logo p { font-size: 0.9rem; color: var(--text-muted); margin-top: 2px; }
+  .card { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1rem; }
+  .card-title { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 1rem; }
+  label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-muted); margin-bottom: 5px; letter-spacing: 0.03em; text-transform: uppercase; }
+  input[type="text"], input[type="number"] { width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.2s; margin-bottom: 1rem; }
+  input:focus { border-color: var(--green); background: white; }
+  .btn { width: 100%; padding: 0.85rem; border-radius: 10px; border: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: transform 0.1s, opacity 0.15s; margin-bottom: 0.6rem; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .btn-primary { background: var(--green); color: white; }
+  .btn-primary:hover:not(:disabled) { opacity: 0.9; }
+  .btn-secondary { background: var(--blue-light); color: var(--blue); }
+  .btn-secondary:hover:not(:disabled) { opacity: 0.85; }
+  .btn-outline { background: transparent; color: var(--text-muted); border: 1.5px solid var(--border); }
+  .btn-outline:hover { background: var(--surface2); }
+  .btn-big { padding: 1.1rem; font-size: 1.05rem; border-radius: 14px; background: var(--green); color: white; width: 100%; border: none; font-family: 'DM Sans', sans-serif; font-weight: 600; cursor: pointer; box-shadow: 0 4px 20px rgba(29,138,94,0.25); transition: transform 0.1s, box-shadow 0.15s; }
+  .btn-big:hover:not(:disabled) { box-shadow: 0 6px 24px rgba(29,138,94,0.35); }
+  .btn-big:active:not(:disabled) { transform: scale(0.98); }
+  .btn-big:disabled { background: var(--border); color: var(--text-muted); box-shadow: none; cursor: default; }
+  .divider { display: flex; align-items: center; gap: 0.75rem; margin: 1rem 0; color: var(--text-muted); font-size: 0.8rem; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .back-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1rem; padding: 4px; font-family: 'DM Sans', sans-serif; }
+  .code-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--green-light); color: var(--green-dark); padding: 4px 10px; border-radius: 8px; font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 500; cursor: pointer; border: none; }
+  .code-badge:hover { background: var(--green); color: white; }
+  .goal-banner { background: linear-gradient(135deg, var(--green-dark), var(--green)); color: white; border-radius: var(--radius); padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .goal-label { font-size: 0.8rem; opacity: 0.8; margin-bottom: 2px; }
+  .goal-value { font-size: 1.6rem; font-weight: 600; }
+  .week-info { text-align: right; font-size: 0.8rem; opacity: 0.75; }
+  .member-item { display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 0; border-bottom: 1px solid var(--border); }
+  .member-item:last-child { border-bottom: none; }
+  .member-left { display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 38px; height: 38px; border-radius: 12px; background: var(--green-light); color: var(--green-dark); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem; flex-shrink: 0; }
+  .avatar.me { background: var(--green); color: white; }
+  .member-name { font-weight: 500; font-size: 0.95rem; }
+  .member-sub { font-size: 0.75rem; color: var(--text-muted); }
+  .checkmarks { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; justify-content: flex-end; max-width: 140px; }
+  .check-dot { width: 22px; height: 22px; border-radius: 7px; background: var(--green-light); display: flex; align-items: center; justify-content: center; font-size: 11px; color: transparent; }
+  .check-dot.filled { background: var(--green); color: white; }
+  .check-dot.is-today { background: var(--accent); color: white; }
+  .today-trained { text-align: center; padding: 1rem; color: var(--green); font-weight: 600; font-size: 0.9rem; }
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--green-dark); color: white; padding: 0.75rem 1.5rem; border-radius: 50px; font-size: 0.9rem; font-weight: 500; transition: transform 0.3s ease; pointer-events: none; white-space: nowrap; z-index: 100; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .big-code { font-family: 'DM Mono', monospace; font-size: 2.2rem; font-weight: 500; letter-spacing: 0.15em; color: var(--green-dark); text-align: center; background: var(--green-light); border-radius: 12px; padding: 1rem; margin: 0.5rem 0 1rem; }
+  .error { color: #c0392b; font-size: 0.85rem; margin-top: -0.75rem; margin-bottom: 0.75rem; }
+  .loading { text-align: center; color: var(--text-muted); padding: 2rem; font-size: 0.9rem; }
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- START -->
+  <div class="screen active" id="screen-start">
+    <div class="logo">
+      <div class="logo-icon">🏃</div>
+      <h1>ExerciseBuddy</h1>
+      <p>Hold dig og dine venner ansvarlige</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Opret ny gruppe</div>
+      <label>Dit navn</label>
+      <input type="text" id="create-name" placeholder="fx. Mikkel" maxlength="20">
+      <label>Ugentligt mål (træninger)</label>
+      <input type="number" id="create-goal" value="3" min="1" max="7">
+      <button class="btn btn-primary" id="btn-create" onclick="createGroup()">Opret gruppe →</button>
+    </div>
+    <div class="divider">eller</div>
+    <div class="card">
+      <div class="card-title">Tilslut eksisterende gruppe</div>
+      <label>Gruppekode</label>
+      <input type="text" id="join-code" placeholder="fx. ABC123" maxlength="6" style="text-transform:uppercase">
+      <label>Dit navn</label>
+      <input type="text" id="join-name" placeholder="fx. Sara" maxlength="20">
+      <p class="error" id="join-error" style="display:none"></p>
+      <button class="btn btn-secondary" id="btn-join" onclick="joinGroup()">Tilslut gruppe →</button>
+    </div>
+  </div>
+
+  <!-- CREATED -->
+  <div class="screen" id="screen-created">
+    <div class="logo">
+      <div class="logo-icon">🎉</div>
+      <h1>Gruppe oprettet!</h1>
+      <p>Del koden med dine venner</p>
+    </div>
+    <div class="card">
+      <div class="card-title" style="text-align:center">Din gruppekode</div>
+      <div class="big-code" id="display-code">------</div>
+      <button class="btn btn-outline" onclick="copyCode()" id="copy-btn">📋 Kopier kode</button>
+      <button class="btn btn-primary" onclick="goToGroup()">Gå til gruppen →</button>
+    </div>
+  </div>
+
+  <!-- GROUP -->
+  <div class="screen" id="screen-group">
+    <div class="header">
+      <button class="back-btn" onclick="leaveGroup()">← Skift gruppe</button>
+      <button class="code-badge" id="group-code-badge" onclick="copyCurrentCode()">📎 Del kode</button>
+    </div>
+    <div class="goal-banner">
+      <div>
+        <div class="goal-label">Ugentligt mål</div>
+        <div class="goal-value" id="goal-display">— <span style="font-size:1rem;opacity:0.8">træninger</span></div>
+      </div>
+      <div class="week-info" id="week-display"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Gruppens fremgang</div>
+      <div id="member-list"><div class="loading"><span class="spinner"></span>Henter data…</div></div>
+    </div>
+    <button class="btn-big" id="train-btn" onclick="logTraining()">✅ Jeg har trænet i dag</button>
+    <div class="today-trained" id="already-trained" style="display:none">✅ Godt klaret i dag! Kom igen i morgen.</div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://gqxbhnujazrnkbfcokoh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxeGJobnVqYXpybmtiZmNva29oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjk2MDksImV4cCI6MjA4OTk0NTYwOX0.YD49AlXhKk8UDVB_Ap9IjPSzjv90_TO41sMiN0BlN-g';
+
+const H = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=representation'
+};
+
+async function sb(path, opts = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: { ...H, ...(opts.headers || {}) }, ...opts
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.message || res.statusText); }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+function getWeekKey() {
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const week = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+  return `${now.getFullYear()}-W${String(week).padStart(2, '0')}`;
+}
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function genCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length: 6}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
+let state = { group: null, memberId: null, memberName: null };
+let pollTimer = null;
+
+function saveSession() { localStorage.setItem('eb_v2', JSON.stringify(state)); }
+function clearSession() { localStorage.removeItem('eb_v2'); }
+function loadSession() {
+  try { const s = JSON.parse(localStorage.getItem('eb_v2')); if (s?.group && s?.memberId) { state = s; return true; } } catch {}
+  return false;
+}
+
+async function createGroup() {
+  const name = document.getElementById('create-name').value.trim();
+  const goal = parseInt(document.getElementById('create-goal').value) || 3;
+  if (!name) { showToast('Skriv dit navn først'); return; }
+  setBusy('btn-create', true);
+  try {
+    const code = genCode();
+    await sb('groups', { method: 'POST', body: JSON.stringify({ code, goal }) });
+    const [member] = await sb('members', { method: 'POST', body: JSON.stringify({ group_code: code, name }) });
+    state = { group: { code, goal }, memberId: member.id, memberName: name };
+    saveSession();
+    document.getElementById('display-code').textContent = code;
+    showScreen('screen-created');
+  } catch(e) { showToast('Fejl: ' + e.message); }
+  setBusy('btn-create', false);
+}
+
+async function joinGroup() {
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  const name = document.getElementById('join-name').value.trim();
+  const errEl = document.getElementById('join-error');
+  errEl.style.display = 'none';
+  if (!code || !name) { errEl.textContent = 'Udfyld kode og navn.'; errEl.style.display = 'block'; return; }
+  setBusy('btn-join', true);
+  try {
+    const groups = await sb(`groups?code=eq.${code}&select=*`);
+    if (!groups.length) { errEl.textContent = 'Ingen gruppe med den kode. Tjek stavemåde.'; errEl.style.display = 'block'; setBusy('btn-join', false); return; }
+    const grp = groups[0];
+    const existing = await sb(`members?group_code=eq.${encodeURIComponent(code)}&name=eq.${encodeURIComponent(name)}&select=*`);
+    const member = existing.length ? existing[0] : (await sb('members', { method: 'POST', body: JSON.stringify({ group_code: code, name }) }))[0];
+    state = { group: { code: grp.code, goal: grp.goal }, memberId: member.id, memberName: name };
+    saveSession();
+    await openGroupScreen();
+  } catch(e) { errEl.textContent = 'Fejl: ' + e.message; errEl.style.display = 'block'; }
+  setBusy('btn-join', false);
+}
+
+async function goToGroup() { await openGroupScreen(); }
+
+async function openGroupScreen() {
+  const { group } = state;
+  document.getElementById('group-code-badge').textContent = `📎 ${group.code}`;
+  document.getElementById('goal-display').innerHTML = `${group.goal} <span style="font-size:1rem;opacity:0.8">træninger/uge</span>`;
+  const wn = getWeekKey().split('W')[1];
+  document.getElementById('week-display').innerHTML = `Uge ${wn}<br>${new Date().getFullYear()}`;
+  showScreen('screen-group');
+  await refreshMembers();
+  clearInterval(pollTimer);
+  pollTimer = setInterval(refreshMembers, 10000);
+}
+
+async function refreshMembers() {
+  try {
+    const week = getWeekKey();
+    const today = getTodayKey();
+    const [members, checkins] = await Promise.all([
+      sb(`members?group_code=eq.${state.group.code}&select=*&order=joined_at.asc`),
+      sb(`checkins?week_key=eq.${week}&select=*`)
+    ]);
+    const enriched = members.map(m => ({
+      ...m,
+      days: checkins.filter(c => c.member_id === m.id).map(c => c.day_key)
+    })).sort((a, b) => b.days.length - a.days.length);
+
+    const me = enriched.find(m => m.id === state.memberId);
+    const trainedToday = me?.days.includes(today) ?? false;
+    document.getElementById('train-btn').style.display = trainedToday ? 'none' : 'block';
+    document.getElementById('already-trained').style.display = trainedToday ? 'block' : 'none';
+
+    const goal = state.group.goal;
+    document.getElementById('member-list').innerHTML = enriched.map(m => {
+      const count = m.days.length;
+      const isMe = m.id === state.memberId;
+      const slots = Math.max(count, goal);
+      const dots = Array.from({length: slots}, (_, i) => {
+        const filled = i < count;
+        const isToday = filled && m.days[i] === today;
+        return `<div class="check-dot ${filled ? (isToday ? 'is-today' : 'filled') : ''}">✓</div>`;
+      }).join('');
+      return `
+        <div class="member-item">
+          <div class="member-left">
+            <div class="avatar ${isMe ? 'me' : ''}">${m.name.slice(0,2).toUpperCase()}</div>
+            <div>
+              <div class="member-name">${m.name}</div>
+              <div class="member-sub">${isMe ? 'dig · ' : ''}${count} af ${goal} denne uge</div>
+            </div>
+          </div>
+          <div class="checkmarks">${dots}</div>
+        </div>`;
+    }).join('') || '<div class="loading" style="padding:1rem">Ingen medlemmer endnu</div>';
+  } catch(e) {
+    document.getElementById('member-list').innerHTML = `<div class="loading">Kunne ikke hente data — prøv igen</div>`;
+  }
+}
+
+async function logTraining() {
+  const btn = document.getElementById('train-btn');
+  btn.disabled = true; btn.textContent = '⏳ Logger…';
+  try {
+    await sb('checkins', { method: 'POST', body: JSON.stringify({ member_id: state.memberId, week_key: getWeekKey(), day_key: getTodayKey() }) });
+    showToast('🔥 Godt klaret!');
+    await refreshMembers();
+  } catch(e) {
+    showToast(e.message.includes('unique') ? 'Du har allerede logget i dag!' : 'Fejl: ' + e.message);
+    btn.disabled = false; btn.textContent = '✅ Jeg har trænet i dag';
+  }
+}
+
+function leaveGroup() {
+  clearInterval(pollTimer);
+  state = { group: null, memberId: null, memberName: null };
+  clearSession();
+  showScreen('screen-start');
+}
+
+function copyCode() {
+  const code = document.getElementById('display-code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    showToast('Kode kopieret!');
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✅ Kopieret!';
+    setTimeout(() => btn.textContent = '📋 Kopier kode', 2000);
+  });
+}
+function copyCurrentCode() {
+  navigator.clipboard.writeText(state.group.code).then(() => showToast(`Kode ${state.group.code} kopieret!`));
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function setBusy(id, on) {
+  const btn = document.getElementById(id);
+  btn.disabled = on;
+  btn.textContent = on ? '⏳ Vent…' : (id === 'btn-create' ? 'Opret gruppe →' : 'Tilslut gruppe →');
+}
+
+// Resume session on load
+if (loadSession()) openGroupScreen();
+</script>
+</body>
+</html>
